@@ -1,7 +1,6 @@
-import { User } from "../models/user.model.js"; 
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-dotenv.config();
+import { User } from "../models/user.model.js"; 
+import { clearTokenResponseCookie } from "../utils/index.js";
 
 export const protectedRoute = async function (request, response, next) {
   try {
@@ -21,7 +20,13 @@ export const protectedRoute = async function (request, response, next) {
     next();
   }
   catch(error) {
-    if(error.name === "JsonWebTokenError") {
+    // Handle Invalid Token
+    if (error.name === "TokenExpiredError") {
+      clearTokenResponseCookie("jwt", response);
+      return response.status(401).json({ message: "Unauthorized - Token expired", success: false });
+    }
+    else if (error.name === "JsonWebTokenError") {
+      clearTokenResponseCookie("jwt", response);
       return response.status(401).json({ message: "Unauthorized - Invalid token", success: false });
     }
     else {

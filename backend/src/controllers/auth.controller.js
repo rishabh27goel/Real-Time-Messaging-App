@@ -1,8 +1,6 @@
 import { User } from "../models/user.model.js";
 import { cloudinary } from "../utils/cloudinary.js";
-import { setTokenResponseCookies } from "../utils/index.js";
-import dotenv from "dotenv";
-dotenv.config();
+import { setTokenResponseCookie, clearTokenResponseCookie } from "../utils/index.js";
 
 export const handleUserSignUp = async (request, response) => {
   try {
@@ -28,7 +26,7 @@ export const handleUserSignUp = async (request, response) => {
     await newUser.save();
     
     const jwtToken = newUser.generateToken();
-    setTokenResponseCookies("jwt", jwtToken, response);
+    setTokenResponseCookie("jwt", jwtToken, response);
 
     return response.status(201).json({
       user: {
@@ -69,7 +67,7 @@ export const handleUserLogIn = async (request, response) => {
     }
     
     const jwtToken = existingUser.generateToken();
-    setTokenResponseCookies("jwt", jwtToken, response);
+    setTokenResponseCookie("jwt", jwtToken, response);
 
     return response.status(200).json({
       user: {
@@ -94,7 +92,7 @@ export const handleUserLogIn = async (request, response) => {
 
 export const handleUserLogOut = async (request, response) => {
   try {
-    response.clearCookie("jwt");
+    clearTokenResponseCookie("jwt", response);
     return response.status(200).json({
       message: "User logout successful",
       success: true,
@@ -102,6 +100,61 @@ export const handleUserLogOut = async (request, response) => {
   }
   catch(error) {
     console.error("Error during user logout :", error.message);
+    response.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+      success: false
+    });
+  }
+}
+
+export const handleUserProfileUpdate = async (request, response) => {
+  try {
+    const { profileAvatar } = request?.body;
+    const userId = request?.user?._id;
+
+    if(!profileAvatar) {
+      return response.status(400).json({ message: "Profile picture is required", success: false });
+    } 
+
+    const uploadResponse = await cloudinary.uploader.upload(profileAvatar);
+    const updatedUser = await User.findByIdAndUpdate(
+      userId, 
+      { profileAvatar: uploadResponse?.secure_url },
+      { new: true }
+    );
+    
+    return response.status(200).json({
+      user: {
+        id: updatedUser._id,
+        fullName: updatedUser.fullName,
+        email: updatedUser.email,
+        profileAvatar: updatedUser.profileAvatar
+      },
+      message: "User profile picture updated",
+      success: true,
+    });
+  }
+  catch(error) {
+    console.error("Error during user profile update :", error.message);
+    response.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+      success: false
+    });
+  }
+}
+
+export const handleCheckUserAuthentication = async (request, response) => {
+  try {
+    return response.status(200).json({
+      user: request.user,
+      message: "User is authenticated",
+      success: true,
+    });
+  }
+  catch(error) {
+    console.error("Error during user auth check :", error.message);
     response.status(500).json({
       message: "Internal server error",
       error: error.message,
