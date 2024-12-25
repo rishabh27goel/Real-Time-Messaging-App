@@ -14,7 +14,7 @@ dotenv.config();
     });
   }
   catch(error) {
-    console.error("Error while starting the server : ", error);
+    console.error("Error while starting the server : ", error.message);
     process.exit(1);
   }
 })();

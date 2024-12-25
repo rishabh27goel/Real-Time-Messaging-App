@@ -8,7 +8,7 @@ export const connectDB = async () => {
     return databaseInstance;
   }
   catch(error) {
-    console.error(error);
+    console.error("Error while connecting to the database : ", error.message);
     throw error;
   }
 }
