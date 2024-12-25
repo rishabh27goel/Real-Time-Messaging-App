@@ -1,5 +1,4 @@
 import express from "express";
-import { protectedRoute } from "../middlewares/auth.middleware.js";
 import { 
   handleUserLogIn, 
   handleUserLogOut, 
@@ -7,6 +6,7 @@ import {
   handleUserProfileUpdate, 
   handleCheckUserAuthentication 
 } from "../controllers/auth.controller.js";
+import { protectedRoute } from "../middlewares/auth.middleware.js";
 
 const authRouter = express.Router();
 

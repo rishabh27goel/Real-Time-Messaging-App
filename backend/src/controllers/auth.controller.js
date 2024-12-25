@@ -1,5 +1,5 @@
 import { User } from "../models/user.model.js";
-import { cloudinary } from "../utils/cloudinary.js";
+import { cloudinary } from "../config/cloudinary.js";
 import { setTokenResponseCookie, clearTokenResponseCookie } from "../utils/index.js";
 
 export const handleUserSignUp = async (request, response) => {
